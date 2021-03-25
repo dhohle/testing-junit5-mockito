@@ -9,14 +9,12 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Optional;
-import java.util.OptionalLong;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.BDDMockito.then;
+import static org.mockito.BDDMockito.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -29,24 +27,22 @@ class SpecialitySDJpaServiceTest {
     SpecialitySDJpaService service;
 
     @Test
-    void testDeleteByObject(){
+    void testDeleteByObject() {
         //given
-        Speciality speciality= new Speciality();
+        Speciality speciality = new Speciality();
 
         //when
         service.delete(speciality);
 
         //then
-        then(specialtyRepository).should().delete(any(Speciality.class));
+        then(specialtyRepository).should(timeout(100)).delete(any(Speciality.class));
 //        verify(specialtyRepository, times(1)).delete(any(Speciality.class));
 
     }
 
 
-
-
     @Test
-    void findByIdBddTest(){
+    void findByIdBddTest() {
         //given
         Speciality speciality = new Speciality();
 
@@ -63,12 +59,11 @@ class SpecialitySDJpaServiceTest {
         then(specialtyRepository).shouldHaveNoMoreInteractions();
 
 
-
     }
 
 
     @Test
-    void findByIdTest(){
+    void findByIdTest() {
         //given
         Speciality speciality = new Speciality();
 
@@ -117,9 +112,60 @@ class SpecialitySDJpaServiceTest {
     }
 
     @Test
-    void testDelete(){
+    void testDelete() {
         this.service.delete(new Speciality());
         verify(specialtyRepository, times(1)).delete(any(Speciality.class));
+    }
+
+    @Test
+    void testDoThrow() {
+        doThrow(new RuntimeException("boem")).when(specialtyRepository).delete(any());
+
+        assertThrows(RuntimeException.class, () -> this.service.delete(new Speciality()));
+
+        verify(specialtyRepository).delete(any());
+    }
+
+    @Test
+    void testFindByIdThrows() {
+        given(specialtyRepository.findById(1L)).willThrow(new RuntimeException("boem"));
+
+        assertThrows(RuntimeException.class, () -> service.findById(1L));
+
+        then(specialtyRepository).should().findById(1L);
+    }
+
+
+    @Test
+    void testDeleteBDD(){
+        willThrow(new RuntimeException("boem")).given(specialtyRepository).delete(any());
+
+        assertThrows(RuntimeException.class, () -> service.delete(new Speciality()));
+
+        then(specialtyRepository).should().delete(any());
+
+    }
+
+
+    @Test
+    void testSaveLambda(){
+        //given
+        final String MATCH_ME = "MATCH_ME";
+        Speciality speciality = new Speciality();
+        speciality.setDescription(MATCH_ME);
+
+        Speciality savedSpeciality = new Speciality();
+        savedSpeciality.setId(1L);
+
+        // need mock
+        given(specialtyRepository.save(argThat(argument -> argument.getDescription().equals(MATCH_ME)))).willReturn(savedSpeciality);
+
+        //when
+        Speciality returnedSpeciality = service.save(speciality);
+
+        //then
+        assertThat(returnedSpeciality.getId()).isEqualTo(1L);
+
     }
 
 }
