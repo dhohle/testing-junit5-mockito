@@ -1,4 +1,4 @@
-[![CircleCI](https://circleci.com/gh/dhohle/testing-java-mockito.svg?style=svg)](https://circleci.com/gh/dhohle/testing-java-mockito)
+[![CircleCI](https://circleci.com/gh/dhohle/testing-junit5-mockito.svg?style=svg)](https://circleci.com/gh/dhohle/testing-junit5-mockito)
 
 # Introduction to JUnit 5 with Mockito
 
